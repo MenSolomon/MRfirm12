@@ -17,9 +17,6 @@ import {
   collection,
   onSnapshot,
   query,
-  updateDoc,
-  arrayUnion,
-  getDoc,
 } from "@firebase/firestore";
 import FingerprintJS from "@fingerprintjs/fingerprintjs";
 import { v4 } from "uuid";
@@ -27,29 +24,12 @@ import moment from "moment";
 import { formatDistanceToNow } from "date-fns";
 
 //
-function TextMessage() {
+function AdminTextPortal() {
   const [messages, setMessages] = useState("");
   const [userID, setuserID] = useState("");
   const [messageArray, setMessageArray] = useState([]);
 
   console.log(messages);
-
-  useEffect(() => {
-    async function getVisitorId() {
-      try {
-        const fpPromise = FingerprintJS.load(); // Load the FingerprintJS agent
-        const fp = await fpPromise;
-        const result = await fp.get();
-        console.log("Visitor ID:", result.visitorId);
-        // alert(result.visitorId, "   visitorId");
-        setuserID(result.visitorId);
-      } catch (error) {
-        console.error("Error getting visitor ID:", error);
-      }
-    }
-
-    getVisitorId();
-  }, []);
 
   // Initialize an agent at application startup.
   //
@@ -68,35 +48,17 @@ function TextMessage() {
       const dateSend = moment().format("YYYY-MM-DD HH:mm:ss");
 
       if (messages.trim() !== "") {
-        //// END OF UPDATE
-
-        const updateUsersWhoHaveInitiatedText = doc(
-          db,
-          `ChatUsers`,
-          "AllUsersDoc"
-        );
-
-        const docSnap = await getDoc(updateUsersWhoHaveInitiatedText);
-
-        if (docSnap.includes(userID)) {
-          ("");
-        } else {
-          await updateDoc(updateUsersWhoHaveInitiatedText, {
-            usersEngaged: arrayUnion(userID),
-          });
-        }
-
         const userToSelfMessageRef = doc(
           db,
-          `Chats/${userID}/Contacts/Messages/Admin`,
+          `Chats/Admin/Contacts/Messages/${userID}`,
           uuid
         );
         await setDoc(userToSelfMessageRef, {
           messageId: uuid,
-          senderId: userID,
-          recepientId: "Admin",
+          senderId: "Admin",
+          recepientId: userID,
           // senderName: `${userLoginDetailsObject?.firstName} ${userLoginDetailsObject?.surname} `,
-          recepientName: "Admin",
+          recepientName: userID,
           message: messages,
           dateSent: dateSend,
         });
@@ -104,15 +66,15 @@ function TextMessage() {
         // Message to other
         const userToOthersMessageRef = doc(
           db,
-          `Chats/Admin/Contacts/Messages/${userID}`,
+          `Chats/${userID}/Contacts/Messages/Admin`,
           uuid
         );
         await setDoc(userToOthersMessageRef, {
           messageId: uuid,
-          senderId: userID,
-          recepientId: "Admin",
+          senderId: "Admin",
+          recepientId: userID,
           // senderName: `${userLoginDetailsObject?.firstName} ${userLoginDetailsObject?.surname} `,
-          recepientName: "Admin",
+          recepientName: userID,
           message: messages,
           dateSent: dateSend,
         });
@@ -179,27 +141,30 @@ function TextMessage() {
     };
   }, [userID]);
 
-  useEffect(() => {
-    const getAllUsersId = collection(db, `Chats`);
+  // useEffect(() => {
+  //   // selectedUserDetailsObject?.contactId.length === 0 ?
 
-    const q = query(getAllUsersId);
-    const alldata = onSnapshot(q, (querySnapshot) => {
-      const items = [];
-      const ids = [];
-      querySnapshot.forEach((doc) => {
-        items.push(doc.data());
-        ids.push(doc.id());
-        // alert(doc.id());
-      });
-      // alert("messages");
+  //   const getAllUsersId = collection(db, `Chats`);
 
-      console.log(ids, "all users Id");
-      console.log(items, "allmessages");
-    });
-    return () => {
-      alldata();
-    };
-  }, []);
+  //   const q = query(getAllUsersId);
+  //   const alldata = onSnapshot(q, (querySnapshot) => {
+  //     const items = [];
+  //     const ids = [];
+  //     querySnapshot.forEach((doc) => {
+  //       items.push(doc.data());
+  //       ids.push(doc.id());
+  //       // alert(doc.id());
+  //     });
+  //     // alert("messages");
+
+  //     console.log(ids, "all users Id");
+  //     console.log(items, "allmessages");
+  //     setMessageArray(items.sort(compareDates));
+  //   });
+  //   return () => {
+  //     alldata();
+  //   };
+  // }, []);
 
   return (
     <div
@@ -215,7 +180,11 @@ function TextMessage() {
         <div className="md:flex md:flex-col md:gap-[1em] md:justify-center md:items-center   sm:flex sm:flex-col sm:gap-[1em] sm:justify-center sm:items-center">
           <img src={logo} className="md:w-[40%] sm:w-[40%]" alt="" />
 
-          <ul
+          {
+            // write a code in the TextMessage page that will take add or update the user id some where in user database  an array   adn will display the users here
+          }
+
+          {/* <ul
             className="md:flex md:flex-row md:justify-center md:items-center md:gap-[1em]  md:pl-[5%] md:list-none    sm:flex sm:flex-row sm:justify-center sm:items-center sm:gap-[.5em]  sm:pl-[5%] sm:list-none"
             style={
               {
@@ -240,7 +209,7 @@ function TextMessage() {
             <li>
               <LinkedIn sx={{ fontSize: "20px" }} />
             </li>
-          </ul>
+          </ul> */}
         </div>
       </div>
 
@@ -259,6 +228,7 @@ function TextMessage() {
             return (
               <>
                 <div style={{ display: "flex", flexDirection: "column" }}>
+
                   <ChatCard key={index} content={TextMessages} />
                 </div>
               </>
@@ -335,7 +305,7 @@ function TextMessage() {
   );
 }
 
-export default TextMessage;
+export default AdminTextPortal;
 
 const OtherUserMessage = ({ message, dateSent, profileImage }) => {
   const parsedTimestamp = new Date(dateSent);
